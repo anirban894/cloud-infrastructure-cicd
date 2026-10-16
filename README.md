@@ -1,4 +1,3 @@
-
 # Cloud Infrastructure Setup & CI/CD Automation
 
 ## Overview
@@ -59,6 +58,26 @@ The service listens on port 3000 by default. Set the `PORT` environment variable
 - JavaScript
 - Git and GitHub
 - Automated testing with `node:test` and `node:assert/strict`
+
+## Continuous Integration
+
+GitHub Actions runs the automated test suite on pushes to the `main` branch and pull requests targeting `main`.
+
+The workflow is defined in `.github/workflows/ci.yml` and uses:
+- GitHub Actions to automate the CI process
+- Ubuntu as the CI runner
+- Node.js 24
+- `npm test` to execute the automated tests
+
+### Verified CI Results
+
+The CI workflow completed successfully for commit `f25e6c1`.
+
+- Automated tests passed: 4
+- Failed tests: 0
+- Tested endpoints: `/`, `/health`, `/unknown`, and `/version`
+
+The workflow verifies the application tests. Infrastructure provisioning and cloud deployment are not yet implemented.
 
 ## Planned Enhancements
 
