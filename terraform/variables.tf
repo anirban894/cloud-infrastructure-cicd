@@ -25,3 +25,14 @@ variable "owner" {
   type        = string
   default     = "anirban894"
 }
+
+variable "aws_region" {
+  description = "AWS region for infrastructure deployment"
+  type        = string
+  default     = "ap-south-1"
+
+  validation {
+    condition     = length(trimspace(var.aws_region)) > 0
+    error_message = "AWS region must not be empty."
+  }
+}

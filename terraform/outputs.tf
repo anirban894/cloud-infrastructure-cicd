@@ -12,3 +12,8 @@ output "owner" {
   description = "Configured project owner"
   value       = var.owner
 }
+
+output "aws_region" {
+  description = "Configured AWS region"
+  value       = var.aws_region
+}
