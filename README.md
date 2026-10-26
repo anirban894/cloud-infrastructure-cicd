@@ -50,6 +50,7 @@ The service listens on port 3000 by default. Set the `PORT` environment variable
 |---|---|---|
 | GET | `/` | HTTP 200 with welcome message and version |
 | GET | `/health` | HTTP 200 with health status |
+| GET | `/version` | HTTP 200 with service version |
 | GET | `/unknown` | HTTP 404 Not Found |
 
 ## Technology Stack
@@ -90,7 +91,7 @@ The following items are planned and should not be considered implemented until v
 
 ## Project Status
 
-The initial API implementation and three automated tests have been verified locally and published to GitHub. Infrastructure automation and CI/CD integration remain in progress.
+The initial API implementation and all four automated tests have been verified locally and published to GitHub. GitHub Actions CI is configured and has passed. Terraform configuration has been initialized and validated locally; infrastructure provisioning and cloud deployment remain in progress.
 
 ## Cost and Security
 
