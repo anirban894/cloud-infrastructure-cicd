@@ -21,7 +21,7 @@ coverage/
 Thumbs.db
 
 # Terraform local files and state
-**/.terraform/*
+**/.terraform/
 *.tfstate
 *.tfstate.*
 crash.log
