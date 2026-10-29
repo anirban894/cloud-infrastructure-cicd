@@ -1,8 +1,11 @@
-﻿# Docker Practical Validation â€” StoreOps API
+# Docker Practical Validation — StoreOps API
 
 **Project:** Cloud Infrastructure Setup & CI/CD Automation
+
 **Application:** StoreOps API
+
 **Docker Image:** `storeops-api:1.0.0`
+
 **Validation Date:** 29 October 2026
 
 ## 1. Objective
@@ -20,7 +23,7 @@ The root `Dockerfile` uses:
 - Exposed container port: `3000`
 - Startup command: `npm start`
 
-## 3. Image Build â€” Verified
+## 3. Image Build — Verified
 
 **Command executed:**
 
@@ -35,7 +38,7 @@ sudo docker build --no-cache -t storeops-api:1.0.0 .
 - Image inspection confirmed exposed port `3000/tcp`.
 - Adding `.dockerignore` reduced the reported build context to approximately `20.48 kB`.
 
-## 4. API Endpoint Validation â€” Verified
+## 4. API Endpoint Validation — Verified
 
 The detached container was tested on host port `3001`, mapped to container port `3000`.
 
