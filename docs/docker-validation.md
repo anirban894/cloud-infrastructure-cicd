@@ -4,9 +4,9 @@
 
 **Application:** StoreOps API
 
-**Docker Image:** `storeops-api:1.0.0`
+**Docker Images:** `storeops-api:1.0.0` (original validation) and `storeops-api:1.0.0-linux-verified` (31 October Linux-native build)
 
-**Validation Date:** 30 October 2026
+**Validation Date:** 30–31 October 2026
 
 ## 1. Objective
 
@@ -84,7 +84,49 @@ All four endpoint responses matched the expected behavior.
 
 **Validation limitation:** The container's restart policy is configured, but a new Docker daemon restart and WSL shutdown/restart recovery test have not been performed as part of this validation session. The configuration alone does not establish successful automatic recovery.
 
-## 5. Container Lifecycle Investigation
+## 5. Fresh Linux-Native Docker Build & Validation — 31 October 2026
+
+### Environment
+- OS: Ubuntu 22.04.5 LTS (WSL2)
+- Node.js: 24.22.2 (NVM 0.40.3)
+- npm: 11.19.1
+- Docker Engine: 29.1.3
+
+### Application Test Validation
+- Command: `npm test`
+- Result: PASS — 4 tests passed, 0 failed.
+- Tested endpoints: `/`, `/health`, `/version`, `/unknown`
+
+### Fresh Docker Image Build
+- Command: `docker build -t storeops-api:1.0.0-linux-verified .`
+- Result: Successful.
+- Build context: 26.11 kB
+- Base image: `node:24-alpine`
+- Runtime user: `node`
+- Exposed port: `3000`
+- Image ID: `sha256:18dbf853859b4971cb391c75245b2212aadaa5ec44ff6f1ea6c72ca029e88482`
+- Image size: 62,499,192 bytes.
+- Legacy builder deprecation warning appeared; build succeeded.
+
+### Fresh Container Deployment
+- Command: `docker run -d --name storeops-api-linux-build-test -p 3003:3000 storeops-api:1.0.0-linux-verified`
+- Result: Container started successfully and remained running.
+- Container ID: `93baea2175b8cdf4dc21a1fa33df99e841259c849918c8de7fb80fefec0fe5f7`
+- Port mapping: host `3003` to container `3000`.
+
+### Endpoint Validation
+All requests were tested against `http://localhost:3003`.
+- `/` — HTTP 200 — PASS
+- `/health` — HTTP 200 — PASS
+- `/version` — HTTP 200 — PASS
+- `/unknown-route` — HTTP 404 — PASS
+
+Response bodies matched the expected application responses.
+
+### Validation Boundary
+Fresh Linux-native image build, container startup, and endpoint functionality are verified. Recovery after a Docker daemon restart or WSL shutdown/restart has not yet been tested.
+
+## 6. Container Lifecycle Investigation
 
 A detached API container and an independent Node.js heartbeat container were observed running successfully during testing.
 
@@ -109,12 +151,12 @@ The evidence confirms that the WSL2 Ubuntu instance powered down and Docker stop
 
 **The initiating cause of the WSL shutdown remains undetermined.** The available evidence does not prove that the systemd user-session warning caused it.
 
-## 6. Current Status and Limitations
+## 7. Current Status and Limitations
 
 - Docker image build: **Verified successful**
 - API endpoint behavior: **Verified successful**
 - Detached container operation: **Verified during an active WSL session**
-- Container persistence across WSL shutdown: **Not supported by the current setup**
+- Container recovery across WSL shutdown/restart: **Not yet validated**
 - Root cause of the WSL shutdown trigger: **Unresolved**
 - Container restart policy: **Configured as `unless-stopped` on the recovery-test container**
 - Recovery after Docker daemon restart: **Not newly validated in this session**
@@ -122,7 +164,7 @@ The evidence confirms that the WSL2 Ubuntu instance powered down and Docker stop
 
 Docker Engine runs inside the WSL2 Ubuntu distribution. When that distribution shuts down, its Docker daemon and running containers stop as well.
 
-## 7. Next Actions
+## 8. Next Actions
 
 1. Preserve the current verified evidence.
 2. Investigate the WSL shutdown trigger only if necessary.
