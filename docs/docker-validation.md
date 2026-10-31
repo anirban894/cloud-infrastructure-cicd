@@ -161,7 +161,62 @@ The `no` policy container was subsequently started manually with `docker start s
 
 **Result:** Docker daemon restart recovery was successfully verified for the `unless-stopped` container. The container configured with `no` did not automatically restart.
 
-**Validation boundary:** This test covers a Docker daemon restart only. Recovery after a complete WSL shutdown and subsequent restart remains untested.
+**Validation boundary:** This test covers a Docker daemon restart. Full WSL distribution shutdown and restart recovery is documented in the following section.
+
+### WSL Distribution Shutdown & Restart Recovery Validation — 31 October 2026
+
+**Environment:** Windows 10, WSL2, Ubuntu-22.04, Docker Engine 29.1.3.
+
+**Pre-test state:**
+- Ubuntu-22.04 was running under WSL 2.
+- Docker service was enabled and active.
+- `storeops-api-recovery-test` was running with restart policy `unless-stopped`.
+- Container ID: `fd5dd116391d0b4e67b32685f26dddeb75ac962ef4ffcc56583479ceecb42a13`.
+- Pre-shutdown start time: `2026-10-31T09:33:16.361389854Z`.
+- Pre-shutdown restart count: `0`.
+
+**Test procedure:**
+
+From Windows PowerShell, the following command was executed:
+
+`wsl --terminate Ubuntu-22.04`
+
+The Ubuntu distribution was then relaunched using:
+
+`wsl -d Ubuntu-22.04`
+
+On relaunch, WSL displayed a systemd user-session warning:
+
+`Failed to start the systemd user session for 'ubuntu'. See journalctl for more details.`
+
+This warning did not prevent Docker from starting.
+
+**Observed recovery results:**
+
+| Check | Result |
+|---|---|
+| Ubuntu-22.04 relaunch | Successful |
+| Docker service after relaunch | Active |
+| Recovery container after relaunch | Running |
+| Container ID | Unchanged |
+| Restart policy | `unless-stopped` |
+| New StartedAt | `2026-10-31T15:02:52.401211427Z` |
+| Reported RestartCount | `0` |
+| Health endpoint on port `3002` | HTTP 200 |
+
+The unchanged container ID and updated start timestamp confirm that the existing container was automatically started again after the WSL distribution restarted.
+
+The final health check was executed using:
+
+`curl -i http://localhost:3002/health`
+
+Response: HTTP 200 OK.
+
+`{"status":"healthy","service":"storeops-api"}`
+
+**Result:** Automatic recovery of the `unless-stopped` container was successfully verified after a complete Ubuntu-22.04 WSL distribution termination and relaunch.
+
+**Validation boundary:** This test verifies recovery of the `unless-stopped` container. Automatic recovery of the `no` policy container after a full WSL distribution restart has not been tested. The systemd user-session warning was observed but its cause has not been established.
 
 ## 6. Container Lifecycle Investigation
 
