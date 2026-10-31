@@ -82,7 +82,7 @@ An existing recovery-test container was inspected and validated.
 
 All four endpoint responses matched the expected behavior.
 
-**Validation limitation:** The container's restart policy is configured, but a new Docker daemon restart and WSL shutdown/restart recovery test have not been performed as part of this validation session. The configuration alone does not establish successful automatic recovery.
+**Validation limitation (as of 30 October 2026):** The container's restart policy was configured, but a new Docker daemon restart and WSL shutdown/restart recovery test had not been performed at that time. The configuration alone did not establish successful automatic recovery.
 
 ## 5. Fresh Linux-Native Docker Build & Validation — 31 October 2026
 
@@ -124,7 +124,44 @@ All requests were tested against `http://localhost:3003`.
 Response bodies matched the expected application responses.
 
 ### Validation Boundary
-Fresh Linux-native image build, container startup, and endpoint functionality are verified. Recovery after a Docker daemon restart or WSL shutdown/restart has not yet been tested.
+The fresh Linux-native image build, container startup, and endpoint functionality were verified. At the time of this build validation, recovery after a Docker daemon restart or WSL shutdown/restart had not yet been tested. The subsequent daemon-restart test is documented below.
+
+### Docker Daemon Restart Recovery Validation — 31 October 2026
+
+**Environment:** Ubuntu 22.04.5 LTS (WSL2), Docker Engine 29.1.3.
+
+**Pre-test state:**
+- Docker service: active and enabled.
+- `storeops-api-recovery-test`: running, restart policy `unless-stopped`.
+- `storeops-api-linux-build-test`: running, restart policy `no`.
+- Recovery container baseline ID: `fd5dd116391d0b4e67b32685f26dddeb75ac962ef4ffcc56583479ceecb42a13`.
+- Baseline start time: `2026-10-31T04:47:04.309670432Z`.
+- Baseline restart count: `0`.
+- Baseline health endpoint on port `3002`: HTTP 200.
+
+**Test procedure:**
+
+Command executed: `sudo systemctl restart docker`
+
+Docker service returned to `active`.
+
+**Observed recovery results:**
+
+| Check | `unless-stopped` container | `no` policy container |
+|---|---|---|
+| Before daemon restart | Running | Running |
+| After daemon restart | Running | Exited (1) |
+| Automatic recovery | Yes | No |
+| Manual start required | No | Yes |
+| Post-recovery health check | HTTP 200 | HTTP 200 after manual start |
+
+The `unless-stopped` container retained its original ID. Its new start time was `2026-10-31T09:33:16.361389854Z`, confirming that the original container was started again. Its reported restart count remained `0`.
+
+The `no` policy container was subsequently started manually with `docker start storeops-api-linux-build-test`. Both containers were confirmed running, and both health endpoints returned HTTP 200.
+
+**Result:** Docker daemon restart recovery was successfully verified for the `unless-stopped` container. The container configured with `no` did not automatically restart.
+
+**Validation boundary:** This test covers a Docker daemon restart only. Recovery after a complete WSL shutdown and subsequent restart remains untested.
 
 ## 6. Container Lifecycle Investigation
 
@@ -159,7 +196,7 @@ The evidence confirms that the WSL2 Ubuntu instance powered down and Docker stop
 - Container recovery across WSL shutdown/restart: **Not yet validated**
 - Root cause of the WSL shutdown trigger: **Unresolved**
 - Container restart policy: **Configured as `unless-stopped` on the recovery-test container**
-- Recovery after Docker daemon restart: **Not newly validated in this session**
+- Recovery after Docker daemon restart: **Verified on 31 October 2026 for the `unless-stopped` container; the `no` policy container required manual start**
 - Recovery after WSL shutdown/restart: **Not newly validated in this session**
 
 Docker Engine runs inside the WSL2 Ubuntu distribution. When that distribution shuts down, its Docker daemon and running containers stop as well.
@@ -168,7 +205,7 @@ Docker Engine runs inside the WSL2 Ubuntu distribution. When that distribution s
 
 1. Preserve the current verified evidence.
 2. Investigate the WSL shutdown trigger only if necessary.
-3. Validate the `unless-stopped` restart policy after an approved Docker daemon restart.
+3. Completed: Docker daemon restart recovery validated on 31 October 2026.
 4. Separately validate recovery after WSL shutdown/restart, if approved and required.
 5. Do not create AWS resources or run `terraform apply` as part of this Docker validation.
 
